@@ -1,6 +1,8 @@
 /**
  * 只改这一个文件，就能换成日期，和你想留给真真的话。
- * 以后把真实的句子发过来，也可以再帮你填进来。
+ *
+ * 注意：双引号 "..." 里面不要再写英文双引号，否则整页会挂掉。
+ * 字里如果要用引号，写成「这样」或 '这样'。
  */
 window.SITE = {
   herName: "真真",
@@ -56,7 +58,7 @@ window.SITE = {
   memories: [
     { title: "没事的，一起努力吧", caption: "你好世界。", tag: "hello world", photo: "photo/together-effort.jpg" },
     { title: "一起努力", caption: "你好世界。", tag: "hello world", photo: "photo/together.jpg" },
-    { title: "记一顿", caption: "记录的Moment tag: "记录", photo: "photo/food.jpg" },
+    { title: "记一顿", caption: "记录的Moment", tag: "记录", photo: "photo/food.jpg" },
     { title: "雨天车窗", caption: "小兔！", tag: "简直是化身", photo: "photo/rain-chiikawa.jpg" },
     { title: "老师", caption: "老师很努力呢", tag: "你好世界", photo: "photo/bird.jpg" },
     { title: "无职转生", caption: "看了共情的一张。", tag: "二次元", photo: "photo/meme.jpg" }
