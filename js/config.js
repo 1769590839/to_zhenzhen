@@ -98,5 +98,6 @@ window.SITE = {
 
   hiddenMessage: "Buling——",
 
-  musicEnabled: true
+  musicEnabled: true,
+  musicSrc: "music/eve-kokoro-yohou.mp3"
 };

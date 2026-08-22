@@ -1,11 +1,14 @@
 (() => {
-  const S = window.SITE || {};
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const text = (sel, val) => {
     const el = $(sel);
     if (el) el.textContent = val;
   };
+  const safe = (fn) => {
+    try { fn(); } catch (err) { console.error(err); }
+  };
+  const site = () => window.SITE || {};
 
   const pages = [
     { id: "home", label: "封面", title: "从这里看起", desc: "今日一页，和几件可以点的小事" },
@@ -31,6 +34,7 @@
   const daysBetween = (a, b) => Math.floor((b - a) / 86400000);
 
   function fillText() {
+    const S = site();
     document.title = S.pageTitle || document.title;
     text("#pageTitle", S.pageTitle || "To 真真");
     text("#landingLine", S.landingLine || "");
@@ -49,6 +53,10 @@
     text("#todayStamp", now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate()));
     const lines = S.dialogue || [];
     text("#vnLine", lines[0] || "有些话，想慢慢说给你听。");
+    if (!window.SITE) {
+      const hint = $("#configHint");
+      if (hint) hint.classList.remove("hidden");
+    }
   }
 
   function buildNav() {
@@ -83,15 +91,16 @@
 
   function typeLetter(force) {
     const el = $("#letterBody");
-    const text = (S.letter || "").trim();
+    const body = (site().letter || el.textContent || "").trim();
+    if (!el || !body) return;
     if (!force && el.dataset.done === "1") return;
     clearInterval(typedTimer);
     el.textContent = "";
     el.dataset.done = "";
     let i = 0;
     typedTimer = setInterval(() => {
-      el.textContent = text.slice(0, ++i);
-      if (i >= text.length) {
+      el.textContent = body.slice(0, ++i);
+      if (i >= body.length) {
         clearInterval(typedTimer);
         el.dataset.done = "1";
       }
@@ -99,6 +108,7 @@
   }
 
   function renderTime() {
+    const S = site();
     const now = new Date();
     const meet = parseDay(S.meetDate);
     const fare = parseDay(S.farewellDate);
@@ -124,7 +134,8 @@
     paintCountdown($("#countdown"), special);
     renderTimeline(meet, now, fare);
 
-    const saved = JSON.parse(localStorage.getItem("for-you-custom-date") || "null");
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem("for-you-custom-date") || "null"); } catch (err) { saved = null; }
     if (saved) {
       $("#customDate").value = saved.date || "";
       $("#customTitle").value = saved.title || "";
@@ -179,7 +190,7 @@
     const palette = ["#ffe0ea", "#fff1cf", "#e8fff4", "#f3e8ff", "#ffe8d6", "#e8f3ff"];
     const doodles = ["✿", "✦", "☾", "★", "❀", "☁"];
     wall.innerHTML = "";
-    (S.memories || []).forEach((m, i) => {
+    (site().memories || []).forEach((m, i) => {
       const fig = document.createElement("figure");
       fig.className = "polaroid";
       fig.style.setProperty("--r", (i % 2 ? 3 : -3) + "deg");
@@ -200,7 +211,7 @@
   }
 
   function renderGarden() {
-    const notes = S.flowerNotes || [];
+    const notes = site().flowerNotes || [];
     const garden = $("#garden");
     garden.innerHTML = "";
     notes.forEach((note, i) => {
@@ -218,7 +229,7 @@
   }
 
   function nextDialogue() {
-    const lines = S.dialogue || [];
+    const lines = site().dialogue || [];
     if (!lines.length) return;
     vnIndex = (vnIndex + 1) % lines.length;
     $("#vnLine").textContent = lines[vnIndex];
@@ -236,7 +247,7 @@
     const chip = $("#eggChip");
     chip.hidden = false;
     chip.textContent = "彩蛋 " + foundEggs.size + "/" + total;
-    const lines = S.eggs || [];
+    const lines = site().eggs || [];
     speak(lines[foundEggs.size - 1] || "又找到一颗。");
     if (foundEggs.size >= total) {
       setTimeout(() => {
@@ -303,14 +314,14 @@
       $("#landing").classList.add("hidden");
       $("#app").classList.remove("hidden");
       showPage("home");
-      speak((S.herName || "真真") + "，信在里面。");
+      speak((site().herName || "真真") + "，信在里面。");
     }, 980);
   }
 
   function startFlow() {
     const loader = $("#loader");
     if (loader) loader.classList.add("hidden");
-    const needGate = Boolean((S.secretWord || "").trim());
+    const needGate = Boolean((site().secretWord || "").trim());
     if (needGate) {
       const landing = $("#landing");
       if (landing) landing.classList.add("hidden");
@@ -325,7 +336,7 @@
   function bindGate() {
     $("#gateForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      const ok = $("#secretInput").value.trim() === String(S.secretWord).trim();
+      const ok = $("#secretInput").value.trim() === String(site().secretWord || "").trim();
       if (!ok) {
         $("#gateError").classList.remove("hidden");
         return;
@@ -337,52 +348,33 @@
   }
 
   function MusicBox() {
-    this.ctx = null;
+    this.el = document.createElement("audio");
+    this.el.src = site().musicSrc || "music/eve-kokoro-yohou.mp3";
+    this.el.loop = true;
+    this.el.preload = "auto";
     this.playing = false;
-    this.timer = null;
-    this.notes = [523.25, 587.33, 659.25, 783.99, 880, 783.99, 659.25, 587.33];
-    this.i = 0;
   }
   MusicBox.prototype.start = function start() {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    this.ctx = this.ctx || new AC();
-    this.ctx.resume();
+    const play = this.el.play();
     this.playing = true;
-    const step = () => {
-      if (!this.playing) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = this.notes[this.i % this.notes.length];
-      gain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.05, this.ctx.currentTime + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.55);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.58);
-      this.i += 1;
-      this.timer = setTimeout(step, 520);
-    };
-    step();
+    if (play && play.catch) play.catch(() => { this.playing = false; });
   };
   MusicBox.prototype.stop = function stop() {
+    this.el.pause();
     this.playing = false;
-    clearTimeout(this.timer);
   };
 
   function bindChrome() {
     audio = new MusicBox();
     $("#musicBtn").addEventListener("click", () => {
-      if (!S.musicEnabled) return;
+      if (site().musicEnabled === false) return;
       if (audio.playing) {
         audio.stop();
         $("#musicBtn").textContent = "♪";
       } else {
         audio.start();
         $("#musicBtn").textContent = "♫";
-        speak("音乐盒打开了。再点一下就能关上。");
+        speak("心予報响起来了。再点一下就能关上。");
       }
     });
     $("#themeBtn").addEventListener("click", () => {
@@ -484,20 +476,16 @@
   };
 
   function boot() {
-    try {
-      fillText();
-      buildNav();
-      renderTime();
-      renderMemories();
-      renderGarden();
-      bindApps();
-      bindMascot();
-      bindGate();
-      bindChrome();
-      fx.init();
-    } catch (err) {
-      console.error(err);
-    }
+    safe(fillText);
+    safe(buildNav);
+    safe(renderTime);
+    safe(renderMemories);
+    safe(renderGarden);
+    safe(bindApps);
+    safe(bindMascot);
+    safe(bindGate);
+    safe(bindChrome);
+    safe(() => fx.init());
     startFlow();
   }
 

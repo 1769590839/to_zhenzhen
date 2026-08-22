@@ -67,6 +67,18 @@ body.night {
 
 .hidden { display: none !important; }
 
+.config-hint {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 10px 16px;
+  background: #fff3c4;
+  color: #7a4b00;
+  text-align: center;
+  font-size: 14px;
+}
+
 .screen {
   min-height: 100dvh;
   display: grid;
