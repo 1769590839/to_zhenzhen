@@ -13,14 +13,14 @@
   const pages = [
     { id: "home", label: "封面", title: "从这里看起", desc: "今日一页，和几件可以点的小事" },
     { id: "letter", label: "信", title: "还没寄出的一封", desc: "留言" },
-    { id: "time", label: "日子", title: "把日子数清楚", desc: "认识、分别和倒数" },
+    { id: "time", label: "日子", title: "把日子数清楚", desc: "认识和倒数" },
     { id: "memories", label: "碎片", title: "碎片墙", desc: "一些记下的瞬间" },
     { id: "secret", label: "星", title: "藏起来的一页", desc: "小彩蛋" }
   ];
 
   const mascotLines = [
-    "开一朵花",
-    "一封信"
+    "一封信",
+    "日子还在慢慢走。"
   ];
 
   let typedTimer = null;
@@ -50,7 +50,9 @@
     text("#makeupTitle", S.makeupTitle || "");
     text("#secretHint", S.secretHint || "只有我们知道的那句");
     const now = new Date();
-    text("#todayStamp", now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate()));
+    const today = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate());
+    text("#todayStamp", today);
+    text("#homeToday", today);
     const lines = S.dialogue || [];
     text("#vnLine", lines[0] || "有些话，想慢慢说给你听。");
     if (!window.SITE) {
@@ -111,28 +113,16 @@
     const S = site();
     const now = new Date();
     const meet = parseDay(S.meetDate);
-    const fare = parseDay(S.farewellDate);
     const special = parseDay(S.specialDate);
 
     if (meet) {
       const n = Math.max(0, daysBetween(meet, now) + 1);
       $("#daysKnown").textContent = n;
-      $("#homeDays").textContent = n;
       $("#meetLabel").textContent = "从 " + S.meetDate + " 起";
-    }
-    if (fare) {
-      const diff = daysBetween(now, fare);
-      if (diff > 0) {
-        $("#daysFarewell").textContent = diff;
-        $("#farewellLabel").textContent = "距离 " + S.farewellDate + " 还有这些天";
-      } else {
-        $("#daysFarewell").textContent = Math.abs(diff);
-        $("#farewellLabel").textContent = diff === 0 ? "就是今天。珍重。" : "已经分别 " + Math.abs(diff) + " 天";
-      }
     }
     $("#specialLabel").textContent = S.specialDateLabel || "特别日子";
     paintCountdown($("#countdown"), special);
-    renderTimeline(meet, now, fare);
+    renderTimeline(meet, now);
 
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem("for-you-custom-date") || "null"); } catch (err) { saved = null; }
@@ -143,12 +133,11 @@
     }
   }
 
-  function renderTimeline(meet, now, fare) {
+  function renderTimeline(meet, now) {
     const root = $("#timeline");
     const nodes = [
       { key: "认识", date: meet, cls: "" },
-      { key: "今天", date: now, cls: "now" },
-      { key: "分别", date: fare, cls: "" }
+      { key: "今天", date: now, cls: "now" }
     ].filter((n) => n.date);
     root.innerHTML = nodes.map((n) => {
       const day = n.date.getFullYear() + "." + pad(n.date.getMonth() + 1) + "." + pad(n.date.getDate());
@@ -207,24 +196,6 @@
         burst(fig);
       });
       wall.appendChild(fig);
-    });
-  }
-
-  function renderGarden() {
-    const notes = site().flowerNotes || [];
-    const garden = $("#garden");
-    garden.innerHTML = "";
-    notes.forEach((note, i) => {
-      const btn = document.createElement("button");
-      btn.className = "bud";
-      btn.type = "button";
-      btn.innerHTML = "<span class=\"head\"></span><span class=\"stem\"></span><small>花苞 " + (i + 1) + "</small>";
-      btn.addEventListener("click", () => {
-        btn.classList.add("bloom");
-        btn.querySelector("small").textContent = note;
-        burst(btn);
-      });
-      garden.appendChild(btn);
     });
   }
 
@@ -480,7 +451,6 @@
     safe(buildNav);
     safe(renderTime);
     safe(renderMemories);
-    safe(renderGarden);
     safe(bindApps);
     safe(bindMascot);
     safe(bindGate);
