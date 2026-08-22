@@ -847,12 +847,13 @@ body.night .count-cell { background: #4a2c38; }
 .polaroid:hover { transform: rotate(0deg) scale(1.04); z-index: 2; }
 .polaroid .pic {
   width: 100%;
-  height: 140px;
+  height: 200px;
   object-fit: cover;
   border-radius: 4px;
   display: grid;
   place-items: center;
   font-size: 42px;
+  background: #ffe8ef;
 }
 .polaroid figcaption {
   font-family: var(--font-hand);

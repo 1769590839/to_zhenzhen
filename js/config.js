@@ -18,9 +18,9 @@ window.SITE = {
   specialDateLabel: "下一个值得数着过的日子",
 
   pageTitle: "To 真真",
-  subtitle: "有些话，适合慢慢看",
-  landingLine: "有些话还没收进信封，就先写在这里了",
-  landingHint: "点那颗樱花蜡封，把信打开",
+  subtitle: "一些适合慢慢看的内容",
+  landingLine: "写在信封中的一些话",
+  landingHint: "OPen",
 
   letterTitle: "还没寄出的一封",
   letter: `真真：
@@ -63,20 +63,19 @@ window.SITE = {
 珍重。
 `,
 
-  makeupTitle: "底妆很清透底很服帖！鼻翼这些容易卡粉的小细节都处理的很好（有仔细观察）很像原生皮肤！妆面质感超好。",
+  makeupTitle: "底妆很清透底很服帖！鼻翼这些容易卡粉的小细节都处理的很好（有仔细观察）很像原生皮肤！妆面质感超好（100字）",
 
   memories: [
-    { title: "8.9", caption: "见面的那天。", tag: "开始", photo: "" },
-    { title: "笑到停不下来的那天", caption: "想起来，还是会弯一下眼睛。", tag: "晴", photo: "" },
-    { title: "你鼓励我的瞬间", caption: "一句很轻的话，我却记得很清楚。", tag: "光", photo: "" },
-    { title: "你认真对待自己的时候", caption: "妆很淡，可是整个人是亮的。", tag: "妆", photo: "" },
-    { title: "普通的一个晚上", caption: "普通也很好。普通才像真的相处过。", tag: "日常", photo: "" },
-    { title: "我们都认真的时候", caption: "看你认真的样子，会觉得世界还挺值得。", tag: "闪", photo: "" },
-    { title: "分别之前", caption: "想把这些都留下，而不是只说一句再见。", tag: "折页", photo: "" }
+    { title: "没事的，一起努力吧", caption: "二次元里也会这样说。", tag: "二次元", photo: "photo/together-effort.jpg" },
+    { title: "一起努力", caption: "这句想留给你。", tag: "二次元", photo: "photo/together.jpg" },
+    { title: "记一顿", caption: "普通的吃饭，也算留下过。", tag: "记录", photo: "photo/food.jpg" },
+    { title: "雨天车窗", caption: "四叶草和吉伊卡哇。", tag: "记录", photo: "photo/rain-chiikawa.jpg" },
+    { title: "肩上的鸟", caption: "喜欢的画面，收在这里。", tag: "二次元", photo: "photo/bird.jpg" },
+    { title: "无职转生", caption: "看了会笑的一张。", tag: "二次元", photo: "photo/meme.jpg" }
   ],
 
   dialogue: [
-    "有些话，想慢慢说给你听。",
+    "慢慢看的一些话",
     "永远不要丧失从头再来的勇气。",
     "要沉着冷静，保持思考，坚持不懈，持续学习。",
     "追赶你的动力变成习惯。",

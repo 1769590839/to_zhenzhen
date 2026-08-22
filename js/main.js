@@ -11,7 +11,7 @@
     { id: "home", label: "封面", title: "先从这里看起", desc: "今日一页，和几件可以点的小事" },
     { id: "letter", label: "信", title: "还没寄出的一封", desc: "我想留给你的话" },
     { id: "time", label: "日子", title: "把日子数清楚", desc: "认识、分别和倒数" },
-    { id: "memories", label: "碎片", title: "碎片墙", desc: "先用画，以后换照片" },
+    { id: "memories", label: "碎片", title: "碎片墙", desc: "二次元，和一些记下的瞬间" },
     { id: "secret", label: "星", title: "藏起来的一页", desc: "连点那颗更亮的星" }
   ];
 
