@@ -19,15 +19,36 @@
   ];
 
   const mascotLines = [
-    "一封信",
-    "日子还在慢慢走。"
+    "一封信在「信」那一页。",
+    "日子还在慢慢走。",
+    "碎片可以点开看全图。",
+    "墙上的花瓣和小兔，都藏着东西。",
+    "想听歌的话，点右上角的音符。"
   ];
+
+  const landingLines = [
+    "我是小兔。右上角那个音符，点一下就会唱歌。",
+    "中间的信封点开，就可以进去。",
+    "月亮可以换成夜晚。",
+    "四角的花和星星，藏着小东西。"
+  ];
+
+  const pageGuides = {
+    home: "从封面开始逛就好。想看信，走下面那一栏。",
+    letter: "这封信会自己长出来。蜡封和星星，都有彩蛋。",
+    time: "上面是认识了多少天。下面可以进行一个倒计时",
+    memories: "照片点开能看全图。墙上的花瓣、纸条和小兔，也藏着彩蛋",
+    secret: "那颗星星，连点五次。"
+  };
 
   let typedTimer = null;
   let audio = null;
   let secretClicks = 0;
   let vnIndex = 0;
+  let mascotClicks = 0;
+  let titleTaps = 0;
   const foundEggs = new Set();
+  const hintedPages = new Set();
 
   const pad = (n) => String(n).padStart(2, "0");
   const parseDay = (s) => (s ? new Date(s + "T00:00:00") : null);
@@ -84,11 +105,16 @@
     });
   }
 
-  function showPage(id) {
+  function showPage(id, opts) {
+    const silent = opts && opts.silent;
     $$(".page").forEach((el) => el.classList.toggle("active", el.dataset.page === id));
     $$("#dock button").forEach((el) => el.classList.toggle("active", el.dataset.page === id));
     if (id === "letter") typeLetter(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!silent && !hintedPages.has(id)) {
+      hintedPages.add(id);
+      speak(pageGuides[id] || "慢慢看就好。");
+    }
   }
 
   function typeLetter(force) {
@@ -174,29 +200,64 @@
     root._t = setInterval(tick, 1000);
   }
 
+  function slotWrap(node) {
+    const slot = document.createElement("div");
+    slot.className = "polaroid-slot";
+    slot.appendChild(node);
+    return slot;
+  }
+
   function renderMemories() {
     const wall = $("#memoryWall");
-    const palette = ["#ffe0ea", "#fff1cf", "#e8fff4", "#f3e8ff", "#ffe8d6", "#e8f3ff"];
-    const doodles = ["✿", "✦", "☾", "★", "❀", "☁"];
+    const palette = ["#ffe0ea", "#fff1cf", "#e8fff4", "#f3e8ff"];
+    const doodles = ["✿", "✦", "❀", "★"];
+    const tapes = ["", "mint", "lemon", ""];
     wall.innerHTML = "";
     (site().memories || []).forEach((m, i) => {
       const fig = document.createElement("figure");
       fig.className = "polaroid";
-      fig.style.setProperty("--r", (i % 2 ? 3 : -3) + "deg");
+      const deco = i % 2 === 0
+        ? "<span class=\"pin\" aria-hidden=\"true\"></span>"
+        : "<span class=\"tape-bit " + tapes[i % tapes.length] + "\" aria-hidden=\"true\"></span>";
       const pic = m.photo
-        ? "<img class=\"pic\" src=\"" + m.photo + "\" alt=\"" + m.title + "\" />"
-        : "<div class=\"pic\" style=\"background:" + palette[i % palette.length] + "\">" + doodles[i % doodles.length] + "</div>";
+        ? "<div class=\"frame\"><img class=\"pic\" src=\"" + m.photo + "\" alt=\"" + (m.title || "") + "\" draggable=\"false\" /></div>"
+        : "<div class=\"frame\"><div class=\"pic placeholder\" style=\"background:" + palette[i % palette.length] + "\">" + doodles[i % doodles.length] + "</div></div>";
       fig.innerHTML =
+        deco +
         "<span class=\"tag\">" + (m.tag || "记") + "</span>" +
         pic +
-        "<figcaption>" + m.title + "</figcaption>" +
+        "<figcaption>" + (m.title || "") + "</figcaption>" +
         "<small>" + (m.caption || "") + "</small>";
+      if (m.egg) fig.dataset.egg = String(m.egg);
       fig.addEventListener("click", () => {
-        fig.classList.toggle("tilt-left");
+        openLightbox(m);
         burst(fig);
       });
-      wall.appendChild(fig);
+      wall.appendChild(slotWrap(fig));
     });
+  }
+
+  function openLightbox(m) {
+    const box = $("#lightbox");
+    const img = $("#lightboxImg");
+    if (!box || !img) return;
+    if (m.photo) {
+      img.src = m.photo;
+      img.alt = m.title || "";
+      img.hidden = false;
+    } else {
+      img.removeAttribute("src");
+      img.hidden = true;
+    }
+    text("#lightboxTitle", m.title || "");
+    text("#lightboxCap", m.caption || "");
+    box.classList.remove("hidden");
+    speak(m.say || ("这张是「" + (m.title || "一张碎片") + "」。"));
+  }
+
+  function closeLightbox() {
+    const box = $("#lightbox");
+    if (box) box.classList.add("hidden");
   }
 
   function nextDialogue() {
@@ -204,6 +265,7 @@
     if (!lines.length) return;
     vnIndex = (vnIndex + 1) % lines.length;
     $("#vnLine").textContent = lines[vnIndex];
+    hopMascot();
     burst($("#vnBox"));
   }
 
@@ -230,13 +292,20 @@
 
   function bindApps() {
     $("#vnBox").addEventListener("click", nextDialogue);
-    $("#replayLetter").addEventListener("click", () => typeLetter(true));
+    $("#replayLetter").addEventListener("click", () => {
+      typeLetter(true);
+      speak("再读一遍。我帮你慢慢念。");
+    });
     $("#saveCustom").addEventListener("click", () => {
       const date = $("#customDate").value;
       const title = $("#customTitle").value.trim() || "我的倒数";
-      if (!date) return;
+      if (!date) {
+        speak("先选一个日期小兔才会开始数。");
+        return;
+      }
       localStorage.setItem("for-you-custom-date", JSON.stringify({ date, title }));
       paintCountdown($("#customCountdown"), parseDay(date), title);
+      speak("开始倒数了。日子会自己走。");
     });
     $("#secretStar").addEventListener("click", () => {
       secretClicks += 1;
@@ -244,34 +313,84 @@
       if (secretClicks >= 5) {
         $("#secretCard").classList.remove("hidden");
         burst($("#secretStar"));
+        speak("找到啦。这句是留给真真的。");
+      } else {
+        speak("还差 " + (5 - secretClicks) + " 下。");
       }
     });
-    $$("[data-egg]").forEach((el) => {
-      const fire = () => {
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-egg]");
+      if (!el) return;
+      collectEgg(el.dataset.egg);
+      burst(el);
+    });
+    document.addEventListener("keydown", (e) => {
+      const el = e.target.closest("[data-egg]");
+      if (!el) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
         collectEgg(el.dataset.egg);
         burst(el);
-      };
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        fire();
-      });
-      el.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") fire();
-      });
+      }
     });
+    $("#lightboxClose").addEventListener("click", closeLightbox);
+    $("#lightbox").addEventListener("click", (e) => {
+      if (e.target.id === "lightbox") closeLightbox();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
+    });
+    const title = $("#memoriesTitle");
+    if (title) {
+      title.style.cursor = "pointer";
+      title.title = "连点三次";
+      title.addEventListener("click", () => {
+        titleTaps += 1;
+        if (titleTaps >= 3) {
+          titleTaps = 0;
+          sakuraStorm();
+          speak("墙也会开花。再点照片看看全图。");
+        }
+      });
+    }
   }
 
-  function speak(text) {
+  function hopMascot() {
+    const el = $("#mascot");
+    if (!el) return;
+    el.classList.remove("hop");
+    void el.offsetWidth;
+    el.classList.add("hop", "talk");
+    clearTimeout(hopMascot._t);
+    hopMascot._t = setTimeout(() => el.classList.remove("hop", "talk"), 520);
+  }
+
+  function speak(msg) {
     const bubble = $("#mascotBubble");
-    bubble.textContent = text;
+    if (!bubble || !msg) return;
+    bubble.textContent = msg;
     bubble.classList.remove("hidden");
+    hopMascot();
     clearTimeout(speak._t);
-    speak._t = setTimeout(() => bubble.classList.add("hidden"), 3200);
+    speak._t = setTimeout(() => bubble.classList.add("hidden"), 3800);
+  }
+
+  function onLanding() {
+    const landing = $("#landing");
+    return landing && !landing.classList.contains("hidden");
   }
 
   function bindMascot() {
     $("#mascot").addEventListener("click", () => {
-      speak(mascotLines[Math.floor(Math.random() * mascotLines.length)]);
+      mascotClicks += 1;
+      if (mascotClicks === 7) {
+        sakuraStorm();
+        speak("樱花知道了。团子再跳一次。");
+      } else if (onLanding()) {
+        speak(landingLines[mascotClicks % landingLines.length]);
+      } else {
+        speak(mascotLines[mascotClicks % mascotLines.length]);
+      }
       burst($("#mascot"));
     });
   }
@@ -284,8 +403,10 @@
     setTimeout(() => {
       $("#landing").classList.add("hidden");
       $("#app").classList.remove("hidden");
-      showPage("home");
-      speak((site().herName || "真真") + "，信在里面。");
+      document.body.classList.remove("on-landing");
+      document.body.classList.add("is-app");
+      showPage("home", { silent: true });
+      speak((site().herName || "真真") + "，信在里面。下面可以翻页。");
     }, 980);
   }
 
@@ -302,6 +423,9 @@
     }
     const landing = $("#landing");
     if (landing) landing.classList.remove("hidden");
+    setTimeout(() => {
+      speak("我是小兔！右上角可以开音乐，点信封就能进去。");
+    }, 700);
   }
 
   function bindGate() {
@@ -314,6 +438,7 @@
       }
       $("#gate").classList.add("hidden");
       $("#landing").classList.remove("hidden");
+      speak("暗号对上了。右上角可以开音乐，再点信封。");
     });
     $("#envelope").addEventListener("click", openEnvelope);
   }
@@ -342,15 +467,20 @@
       if (audio.playing) {
         audio.stop();
         $("#musicBtn").textContent = "♪";
+        $("#musicBtn").classList.remove("pulse");
+        speak("先这样静一静也很好。");
       } else {
         audio.start();
         $("#musicBtn").textContent = "♫";
+        $("#musicBtn").classList.remove("pulse");
         speak("心予報响起来了。再点一下就能关上。");
       }
     });
     $("#themeBtn").addEventListener("click", () => {
       document.body.classList.toggle("night");
-      $("#themeBtn").textContent = document.body.classList.contains("night") ? "☀" : "☾";
+      const night = document.body.classList.contains("night");
+      $("#themeBtn").textContent = night ? "☀" : "☾";
+      speak(night ? "夜晚更适合去「星」那一页。" : "白天的樱花又回来了。");
     });
   }
 
@@ -359,6 +489,10 @@
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
     for (let i = 0; i < 14; i += 1) fx.burst(x, y);
+  }
+
+  function sakuraStorm() {
+    for (let i = 0; i < 70; i += 1) fx.parts.push(fx.petal(true));
   }
 
   const fx = {
@@ -387,15 +521,16 @@
       };
       loop();
     },
-    petal() {
+    petal(storm) {
       return {
         kind: "petal",
+        storm: !!storm,
         x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        r: 4 + Math.random() * 5,
-        s: 0.4 + Math.random() * 0.8,
+        y: storm ? (-30 - Math.random() * 240) : Math.random() * window.innerHeight,
+        r: (storm ? 6 : 4) + Math.random() * 6,
+        s: (storm ? 1.3 : 0.4) + Math.random() * (storm ? 1.8 : 0.8),
         a: Math.random() * Math.PI * 2,
-        life: 9999
+        life: storm ? 280 : 9999
       };
     },
     spark(x, y, kind) {
@@ -420,19 +555,24 @@
           p.y += p.s;
           p.x += Math.sin(p.y / 30) * 0.6;
           p.a += 0.02;
+          if (p.storm) p.life -= 1;
           if (p.y > canvas.height + 10) {
+            if (p.storm) return false;
             p.y = -10;
             p.x = Math.random() * canvas.width;
           }
           ctx.save();
           ctx.translate(p.x, p.y);
           ctx.rotate(p.a);
-          ctx.fillStyle = "rgba(255, 155, 184, 0.55)";
+          ctx.fillStyle = p.storm ? "rgba(255, 140, 176, 0.72)" : "rgba(255, 155, 184, 0.55)";
           ctx.beginPath();
-          ctx.ellipse(0, 0, p.r, p.r * 0.6, 0, 0, Math.PI * 2);
+          ctx.ellipse(0, 0, p.r, p.r * 0.55, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.r * 0.55, p.r, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
-          return true;
+          return p.storm ? p.life > 0 : true;
         }
         p.x += p.vx;
         p.y += p.vy;
