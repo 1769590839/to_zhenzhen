@@ -874,14 +874,18 @@ body.night .count-cell { background: #4a2c38; }
 
 .polaroid-wall {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 6px;
-  max-width: 560px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 8px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
 .polaroid-slot {
-  padding: 14px 10px;
+  padding: 12px 8px;
+}
+
+.polaroid-slot:nth-child(7) {
+  grid-column: 2;
 }
 
 .polaroid,
@@ -900,10 +904,13 @@ body.night .polaroid,
 body.night .scrap-note,
 body.night .wall-stamp { background: #3a2730; }
 
-.polaroid-slot:nth-child(1) .polaroid { --r: -2.4deg; }
-.polaroid-slot:nth-child(2) .polaroid { --r: 2.1deg; }
-.polaroid-slot:nth-child(3) .polaroid { --r: 1.6deg; }
-.polaroid-slot:nth-child(4) .polaroid { --r: -1.8deg; }
+.polaroid-slot:nth-child(1) .polaroid { --r: -2.2deg; }
+.polaroid-slot:nth-child(2) .polaroid { --r: 1.8deg; }
+.polaroid-slot:nth-child(3) .polaroid { --r: -1.4deg; }
+.polaroid-slot:nth-child(4) .polaroid { --r: 2deg; }
+.polaroid-slot:nth-child(5) .polaroid { --r: -1.6deg; }
+.polaroid-slot:nth-child(6) .polaroid { --r: 1.5deg; }
+.polaroid-slot:nth-child(7) .polaroid { --r: -0.8deg; }
 
 .polaroid:hover {
   transform: rotate(0deg) scale(1.03);
@@ -1387,7 +1394,12 @@ body.night .bubble::after { border-top-color: #3a2730; }
   .hero-title { font-size: 40px; }
   .dock button { padding: 8px 8px; font-size: 12px; }
   .mail-cat { left: 0; }
-  .polaroid-wall { max-width: 420px; gap: 4px 0; }
+  .polaroid-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 420px;
+    gap: 6px 4px;
+  }
+  .polaroid-slot:nth-child(7) { grid-column: 1 / -1; max-width: 220px; margin: 0 auto; }
   .polaroid-slot { padding: 10px 6px; }
   .lightbox-card img { max-height: 62vh; }
   .bubble { width: 168px; }

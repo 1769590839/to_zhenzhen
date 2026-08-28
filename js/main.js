@@ -209,9 +209,9 @@
 
   function renderMemories() {
     const wall = $("#memoryWall");
-    const palette = ["#ffe0ea", "#fff1cf", "#e8fff4", "#f3e8ff"];
-    const doodles = ["✿", "✦", "❀", "★"];
-    const tapes = ["", "mint", "lemon", ""];
+    const palette = ["#ffe0ea", "#fff1cf", "#e8fff4", "#f3e8ff", "#ffe8d6", "#e8f3ff", "#fff1f5"];
+    const doodles = ["✿", "✦", "❀", "★", "☾", "☁", "♡"];
+    const tapes = ["", "mint", "lemon", "mint", "", "lemon", ""];
     wall.innerHTML = "";
     (site().memories || []).forEach((m, i) => {
       const fig = document.createElement("figure");

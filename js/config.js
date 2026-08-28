@@ -50,10 +50,13 @@ window.SITE = {
   makeupTitle: "之前欠下的hh，想说底妆很清透底很服帖！鼻翼这些容易卡粉的小细节都处理的很好（有仔细观察）很像原生皮肤！妆面质感超好（一共100字）",
 
   memories: [
+    { title: "忆苏州河！", caption: "晨老师的视角", tag: "那晚", photo: "photo/IMG_20260828_091044.jpg", say: "在雨停之前" },
     { title: "心情预报", caption: "很喜欢的一张", tag: "EVE", photo: "photo/bird.jpg", say: "心予報。右上角的音符，可以让它响起来。" },
     { title: "一起努力", caption: "你好世界。", tag: "hello world", photo: "photo/together.jpg", say: "一起努力。这句话可以看两遍。" },
-    { title: "雨天车窗", caption: "小兔！", tag: "简直是化身", photo: "photo/rain-chiikawa.jpg", say: "找到自己人了。四叶草也在。", egg: "10" },
-    { title: "无职转生", caption: "看了共情的一张。", tag: "二次元", photo: "photo/meme.jpg", say: "这张有点好笑。笑一下也算认真生活。" }
+    { title: "雨天车窗", caption: "小兔！", tag: "简直是化身", photo: "photo/rain-chiikawa.jpg", say: "动力源泉！", egg: "10" },
+    { title: "神秘状态", caption: "草莓", tag: "今天都会出现", photo: "photo/DSCF0026.JPG", say: "今天都会出现" },
+    { title: "无职转生", caption: "看了共情的一张。", tag: "二次元", photo: "photo/meme.jpg", say: "认真生活！" },
+    { title: "太氛围叻", caption: "Seasonal Limited。", tag: "桜", photo: "photo/DSCF0027.JPG", say: "~~~" }
   ],
 
   dialogue: [
